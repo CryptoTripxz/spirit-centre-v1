@@ -406,6 +406,13 @@ html,body{height:100%;overflow:hidden;background:#07091A;}
           <div class="sp-audio-track-sub">Fear Not · Strength &amp; Help</div>
         </div>
       </div>
+      <div class="sp-audio-track" id="track-2" onclick="audioLoad(2)">
+        <span class="sp-audio-track-ico">▶</span>
+        <div class="sp-audio-track-info">
+          <div class="sp-audio-track-name">Psalm 91</div>
+          <div class="sp-audio-track-sub">Refuge · Protection · Dwelling</div>
+        </div>
+      </div>
     </div>
   </div>
   <audio id="sp-audio" src="Josh_1_8_1John_3_1_Rom8_1.mp3" preload="metadata"></audio>
@@ -918,7 +925,8 @@ function closeExportSheet(e){if(!e||e.target===document.getElementById('export-s
 (function(){
   var TRACKS=[
     {src:'Josh_1_8_1John_3_1_Rom8_1.mp3', title:'Today\'s Reading — <span>Josh 1:8 · 1 John 3:1 · Rom 8:1</span>'},
-    {src:'Isaiah_41_10.mp3',               title:'Today\'s Reading — <span>Isaiah 41:10</span>'}
+    {src:'Isaiah_41_10.mp3',               title:'Today\'s Reading — <span>Isaiah 41:10</span>'},
+    {src:'Psalm_91.mp3',                    title:'Today\'s Reading — <span>Psalm 91</span>'}
   ];
   var _cur=0;
   var aud=document.getElementById('sp-audio');
