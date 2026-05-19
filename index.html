@@ -306,6 +306,23 @@ html,body{height:100%;overflow:hidden;background:#07091A;}
 .sp-audio-ref-chip{padding:3px 10px;border-radius:100px;background:rgba(196,152,32,0.10);
   border:1px solid rgba(196,152,32,0.25);font-family:'DM Mono',monospace;
   font-size:9px;color:rgba(232,184,48,0.80);}
+
+/* ── AUDIO PLAYLIST ── */
+.sp-audio-playlist{margin-top:12px;display:flex;flex-direction:column;gap:5px;position:relative;z-index:1;}
+.sp-audio-track{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:13px;
+  background:rgba(255,255,255,0.03);border:1px solid rgba(196,152,32,0.14);
+  cursor:pointer;transition:all 0.2s;}
+.sp-audio-track:active{transform:scale(0.97);}
+.sp-audio-track.active{background:rgba(196,152,32,0.12);border-color:rgba(196,152,32,0.35);}
+.sp-audio-track-ico{font-size:9px;color:rgba(200,190,255,0.28);flex-shrink:0;width:12px;
+  transition:color 0.2s;}
+.sp-audio-track.active .sp-audio-track-ico{color:var(--au2);}
+.sp-audio-track-info{flex:1;}
+.sp-audio-track-name{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;
+  color:rgba(220,215,255,0.72);transition:color 0.2s;}
+.sp-audio-track.active .sp-audio-track-name{color:rgba(240,236,255,0.92);}
+.sp-audio-track-sub{font-family:'DM Mono',monospace;font-size:8.5px;
+  color:rgba(200,190,255,0.32);margin-top:2px;}
 </style>
 </head>
 <body>
@@ -357,7 +374,9 @@ html,body{height:100%;overflow:hidden;background:#07091A;}
   <!-- SCRIPTURE AUDIO -->
   <div class="sp-audio-card">
     <div class="sp-audio-label">🎧 Scripture Audio</div>
-    <div class="sp-audio-title">Today's Reading — <span>Josh 1:8 · 1 John 3:1 · Rom 8:1</span></div>
+    <!-- Now-playing title -->
+    <div class="sp-audio-title" id="audio-now-title">Today's Reading — <span>Josh 1:8 · 1 John 3:1 · Rom 8:1</span></div>
+    <!-- Controls -->
     <div class="sp-audio-controls">
       <button class="sp-audio-play" id="audio-play-btn" onclick="audioToggle()">
         <svg id="audio-play-icon" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
@@ -371,10 +390,22 @@ html,body{height:100%;overflow:hidden;background:#07091A;}
         </div>
       </div>
     </div>
-    <div class="sp-audio-refs">
-      <span class="sp-audio-ref-chip">Joshua 1:8</span>
-      <span class="sp-audio-ref-chip">1 John 3:1</span>
-      <span class="sp-audio-ref-chip">Romans 8:1</span>
+    <!-- Playlist -->
+    <div class="sp-audio-playlist" id="sp-audio-playlist">
+      <div class="sp-audio-track active" id="track-0" onclick="audioLoad(0)">
+        <span class="sp-audio-track-ico">▶</span>
+        <div class="sp-audio-track-info">
+          <div class="sp-audio-track-name">Josh 1:8 · 1 John 3:1 · Rom 8:1</div>
+          <div class="sp-audio-track-sub">Faith · Identity · Freedom</div>
+        </div>
+      </div>
+      <div class="sp-audio-track" id="track-1" onclick="audioLoad(1)">
+        <span class="sp-audio-track-ico">▶</span>
+        <div class="sp-audio-track-info">
+          <div class="sp-audio-track-name">Isaiah 41:10</div>
+          <div class="sp-audio-track-sub">Fear Not · Strength &amp; Help</div>
+        </div>
+      </div>
     </div>
   </div>
   <audio id="sp-audio" src="Josh_1_8_1John_3_1_Rom8_1.mp3" preload="metadata"></audio>
@@ -885,36 +916,58 @@ function closeExportSheet(e){if(!e||e.target===document.getElementById('export-s
 
 /* ═══ AUDIO PLAYER ═══ */
 (function(){
+  var TRACKS=[
+    {src:'Josh_1_8_1John_3_1_Rom8_1.mp3', title:'Today\'s Reading — <span>Josh 1:8 · 1 John 3:1 · Rom 8:1</span>'},
+    {src:'Isaiah_41_10.mp3',               title:'Today\'s Reading — <span>Isaiah 41:10</span>'}
+  ];
+  var _cur=0;
   var aud=document.getElementById('sp-audio');
   var btn=document.getElementById('audio-play-btn');
   var icon=document.getElementById('audio-play-icon');
   var seek=document.getElementById('audio-seek');
-  var cur=document.getElementById('audio-cur');
-  var dur=document.getElementById('audio-dur');
+  var curEl=document.getElementById('audio-cur');
+  var durEl=document.getElementById('audio-dur');
+  var titleEl=document.getElementById('audio-now-title');
   function fmt(s){var m=Math.floor(s/60);var ss=Math.floor(s%60);return m+':'+(ss<10?'0':'')+ss;}
-  aud.addEventListener('loadedmetadata',function(){dur.textContent=fmt(aud.duration);});
+  function setPlaying(p){
+    icon.innerHTML=p
+      ?'<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      :'<polygon points="5,3 19,12 5,21"/>';
+    p?btn.classList.add('playing'):btn.classList.remove('playing');
+  }
+  function setActiveTrack(i){
+    document.querySelectorAll('.sp-audio-track').forEach(function(el,idx){
+      el.classList.toggle('active',idx===i);
+    });
+    titleEl.innerHTML=TRACKS[i].title;
+    seek.value=0; curEl.textContent='0:00'; durEl.textContent='--:--';
+  }
+  aud.addEventListener('loadedmetadata',function(){durEl.textContent=fmt(aud.duration);});
   aud.addEventListener('timeupdate',function(){
     if(!aud.duration)return;
     seek.value=(aud.currentTime/aud.duration)*100;
-    cur.textContent=fmt(aud.currentTime);
+    curEl.textContent=fmt(aud.currentTime);
   });
   aud.addEventListener('ended',function(){
-    icon.innerHTML='<polygon points="5,3 19,12 5,21"/>';
-    btn.classList.remove('playing');
+    setPlaying(false);
+    var next=(_cur+1)%TRACKS.length;
+    window.audioLoad(next);
   });
   window.audioToggle=function(){
-    if(aud.paused){
-      aud.play();
-      icon.innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-      btn.classList.add('playing');
-    } else {
-      aud.pause();
-      icon.innerHTML='<polygon points="5,3 19,12 5,21"/>';
-      btn.classList.remove('playing');
-    }
+    if(aud.paused){aud.play();setPlaying(true);}
+    else{aud.pause();setPlaying(false);}
   };
   window.audioSeek=function(v){
     if(aud.duration)aud.currentTime=(v/100)*aud.duration;
+  };
+  window.audioLoad=function(i){
+    var wasPlaying=!aud.paused;
+    _cur=i;
+    aud.src=TRACKS[i].src;
+    aud.load();
+    setActiveTrack(i);
+    setPlaying(false);
+    if(wasPlaying){aud.play();setPlaying(true);}
   };
 })();
 
